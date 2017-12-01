@@ -102,35 +102,42 @@ The model used an adam optimizer, so the learning rate was not tuned manually.
 
 Ir order to capture good training data, I started with 3 laps of controlled center lane driving around the forward direction of the track. In order to create some variation, I then drove the track in the opposite direction, also in a controlled manner.
 
-Center Lane Driving
+Center Lane Driving:
+
 ![alt text][image2]
 
-Reverse Direction Driving
+Reverse Direction Driving:
+
 ![alt text][image3]
 
 As mentioned before, I used the left and right side cameras on top of the car create additional data that I hoped would help keep the car centered. The steering correction factor was initially set to 0.1 degrees, but I noticed vasty improved results when setting it a bit higher to 0.5 degrees.
 
-Left Camera
+Left Camera:
+
 ![alt text][image4]
 
 Things were now going generally okay but to help the vehicle recover better, I drove the whole track again but in the shape of a sin curve between each of the edges of the road. I only recorded data during the times when I was driving towards the center of the road, never towards the edges.
 
-Near Road Edge
+Near Road Edge:
+
 ![alt text][image5]
 
 At this point when testing the model, the entire track could be driven consistently aside from a few key area that were occationally causing trouble.
 
 When the car was about to drive onto the brige or past the dirt on the far side of the bridge, it would sometimes get confused and fail to steer correctly. I fixed this by recording some extra data of how to recover in these key areas. Once this data was added to the training set, the car drove by both areas without a problem.
 
-Driving Near Dirt
+Driving Near Dirt:
+
 ![alt text][image6]
 
 Once all the data was gathered I had just under 7000 images of 320x160x3 size. To improve performance and reduce training time, I converted the images to grayscale and cut 70 pixels from the vertical dimension. This left the images with a size of 320x90x1. This new images use about 5 times less memory than the originals.
 
-Original Image
+Original Image:
+
 ![alt text][image7]
 
-Processed Image
+Processed Image:
+
 ![alt text][image8]
 
 When all said and done, the entire model was able to train in about 1 minute on an NVIDIA GeForce 980TI graphics card.
