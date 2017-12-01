@@ -59,19 +59,27 @@ def generator(samples, batch_size):
 				measurements.append(measurement_left)
 				measurements.append(measurement_right)
 
+				# Add augmented data by mirroring all images and taking inverse steering
+				images.append(cv2.flip(img_center,1))
+				images.append(cv2.flip(img_left,1))
+				images.append(cv2.flip(img_right,1))
+				measurements.append(measurement*(-1.0))
+				measurements.append(measurement_left*(-1.0))
+				measurements.append(measurement_right*(-1.0))
+
 			X_train = np.array(images)
 			y_train = np.array(measurements)
 			yield (sklearn.utils.shuffle(X_train, y_train))
 
 
 # compile and train the model using the generator function
-train_generator = generator(train_samples, batch_size=128)
-validation_generator = generator(validation_samples, batch_size=128)
+train_generator = generator(train_samples, batch_size=32)
+validation_generator = generator(validation_samples, batch_size=32)
 
 
 # Start of Neural Network
 from keras.models import Sequential, Model
-from keras.layers import Flatten, Dense, Lambda, Cropping2D
+from keras.layers import Flatten, Dense, Lambda, Cropping2D, Dropout
 from keras.layers.convolutional import Convolution2D
 from keras.layers.pooling import MaxPooling2D
 
@@ -86,6 +94,7 @@ model.add(Convolution2D(36,5,5,subsample=(2,2),activation="relu"))
 model.add(Convolution2D(48,5,5,subsample=(2,2),activation="relu"))
 model.add(Convolution2D(64,3,3,activation="relu"))
 model.add(Convolution2D(64,3,3,activation="relu"))
+model.add(Dropout(0.5)) # Dropout after last convolution
 model.add(Flatten())
 model.add(Dense(100))
 model.add(Dense(50))
@@ -98,6 +107,9 @@ history_object = model.fit_generator(train_generator, samples_per_epoch = len(tr
 # print the keys contained in the history object
 print(history_object.history.keys())
 
+# Save the model
+model.save('model.h5')
+
 # plot the training and validation loss for each epoch
 plt.plot(history_object.history['loss'])
 plt.plot(history_object.history['val_loss'])
@@ -107,4 +119,3 @@ plt.xlabel('epoch')
 plt.legend(['training set', 'validation set'], loc='upper right')
 plt.show()
 
-model.save('model.h5')
