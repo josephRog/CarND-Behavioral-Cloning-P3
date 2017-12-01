@@ -1,8 +1,6 @@
 # **Behavioral Cloning** 
 
-## Writeup Template
-
-### You can use this file as a template for your writeup if you want to submit it as a markdown file, but feel free to use some other method and submit a pdf if you prefer.
+## Writeup, Joseph Rogers
 
 ---
 
@@ -18,13 +16,14 @@ The goals / steps of this project are the following:
 
 [//]: # (Image References)
 
-[image1]: ./examples/placeholder.png "Model Visualization"
-[image2]: ./examples/placeholder.png "Grayscaling"
-[image3]: ./examples/placeholder_small.png "Recovery Image"
-[image4]: ./examples/placeholder_small.png "Recovery Image"
-[image5]: ./examples/placeholder_small.png "Recovery Image"
-[image6]: ./examples/placeholder_small.png "Normal Image"
-[image7]: ./examples/placeholder_small.png "Flipped Image"
+[image1]: ./images/figure1.png "Loss Graph"
+[image2]: ./images/forward_center.jpg "Center Driving"
+[image3]: ./images/reverse_driving.jpg "Reverse Driving"
+[image4]: ./images/left_camera.jpg "Left Camera"
+[image5]: ./images/near_edge.jpg "Near Edge"
+[image6]: ./images/near_dirt.jpg "Near Dirt"
+[image7]: ./images/orig.jpg "Original Image"
+[image8]: ./images/processed.jpg "Processed Image"
 
 ## Rubric Points
 ### Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/432/view) individually and describe how I addressed each point in my implementation.  
@@ -40,6 +39,8 @@ My project includes the following files:
 * model.h5 containing a trained convolution neural network 
 * writeup_report.md or writeup_report.pdf summarizing the results
 
+Here is a link to my full [github repository.](https://github.com/josephRog/CarND-Behavioral-Cloning-P3)
+
 #### 2. Submission includes functional code
 Using the Udacity provided simulator and my drive.py file, the car can be driven autonomously around the track by executing 
 ```sh
@@ -54,76 +55,90 @@ The model.py file contains the code for training and saving the convolution neur
 
 #### 1. An appropriate model architecture has been employed
 
-My model consists of a convolution neural network with 3x3 filter sizes and depths between 32 and 128 (model.py lines 18-24) 
+My model is a slighly modified verion of the NVIDIA deep neural network for training self-driving cars. The original paper describing the network can be found [here.](https://arxiv.org/pdf/1704.07911.pdf)
 
-The model includes RELU layers to introduce nonlinearity (code line 20), and the data is normalized in the model using a Keras lambda layer (code line 18). 
+My final model consisted of the following layers:
 
-#### 2. Attempts to reduce overfitting in the model
+| Layer                 |     Description                               | 
+|:---------------------:|:---------------------------------------------:| 
+| Input                 | 320x160x3 RGB image                             | 
+| Normalization       | Input = 320x160x3, Output = 320x160x1   |
+| Cropping2D    | Input = 320x160x1, Output = 320x90x1       |
+| Convolution 24,5,5   | 2x2 stride, RELU Activation|
+| Convolution 36,5,5    | 2x2 stride, RELU Activation|
+| Convolution 48,5,5    | 2x2 stride, RELU Activation|
+| Convolution 64,3,3    | 1x1 stride, RELU Activation |
+| Convolution 64,3,3    | 1x1 stride, RELU Activation |
+| Dropout Layer | keep_prob = 0.5           |   
+|Flatten   |
+| Fully Connected | Dense(100) |
+| Fully Connected | Dense(50) |
+| Fully Connected | Dense(10) |
+| Fully Connected | Dense(1) |
 
-The model contains dropout layers in order to reduce overfitting (model.py lines 21). 
+The model includes RELU layers to introduce nonlinearity, and the data is normalized in the model using a Keras lambda layer. 
 
-The model was trained and validated on different data sets to ensure that the model was not overfitting (code line 10-16). The model was tested by running it through the simulator and ensuring that the vehicle could stay on the track.
+This network is slighlty different from the NVIDIA version due to the inclution of a dropout layer before the flatten step. I also removed one of the fully-connected layers.
 
-#### 3. Model parameter tuning
-
-The model used an adam optimizer, so the learning rate was not tuned manually (model.py line 25).
-
-#### 4. Appropriate training data
-
-Training data was chosen to keep the vehicle driving on the road. I used a combination of center lane driving, recovering from the left and right sides of the road ... 
-
-For details about how I created the training data, see the next section. 
-
-### Model Architecture and Training Strategy
-
-#### 1. Solution Design Approach
-
-The overall strategy for deriving a model architecture was to ...
-
-My first step was to use a convolution neural network model similar to the ... I thought this model might be appropriate because ...
-
-In order to gauge how well the model was working, I split my image and steering angle data into a training and validation set. I found that my first model had a low mean squared error on the training set but a high mean squared error on the validation set. This implied that the model was overfitting. 
-
-To combat the overfitting, I modified the model so that ...
-
-Then I ... 
-
-The final step was to run the simulator to see how well the car was driving around track one. There were a few spots where the vehicle fell off the track... to improve the driving behavior in these cases, I ....
-
-At the end of the process, the vehicle is able to drive autonomously around the track without leaving the road.
-
-#### 2. Final Model Architecture
-
-The final model architecture (model.py lines 18-24) consisted of a convolution neural network with the following layers and layer sizes ...
-
-Here is a visualization of the architecture (note: visualizing the architecture is optional according to the project rubric)
+When training the model I used a generator to save memory with a batch size of 32. The generator function automatically shuffled the data every time it was called. I only even trained over the course of 5 epochs due to diminishing returns of training and validation accuracy. To be mindful of not overfitting the data, I graphed the loss of the two data sets to make sure then were in line with each other.
 
 ![alt text][image1]
 
-#### 3. Creation of the Training Set & Training Process
+#### 2. Attempts to reduce overfitting in the model
 
-To capture good driving behavior, I first recorded two laps on track one using center lane driving. Here is an example image of center lane driving:
+The model has a dropout layer just before the flatten before all of the fully connected layers. The dropout probability was set to 0.5.
 
+The training data used a 80/20 split between the main set and validation data. Training data was augmented by creating mirrored copies of all of the images. The data was mirrored to help reduce left steering bias.
+
+I also used the left and right side cameras on top of the car to give additional data to the network. Each of these cameras was given an extra 0.5 degrees of correction to their steering measurements.
+
+The final model was tested by running it through the simulator and ensuring that the vehicle could stay on the track.
+
+#### 3. Model parameter tuning
+
+The model used an adam optimizer, so the learning rate was not tuned manually.
+
+#### 4. Creation of the Training Set & Training Process
+
+Ir order to capture good training data, I started with 3 laps of controlled center lane driving around the forward direction of the track. In order to create some variation, I then drove the track in the opposite direction, also in a controlled manner.
+
+Center Lane Driving
 ![alt text][image2]
 
-I then recorded the vehicle recovering from the left side and right sides of the road back to center so that the vehicle would learn to .... These images show what a recovery looks like starting from ... :
-
+Reverse Direction Driving
 ![alt text][image3]
+
+As mentioned before, I used the left and right side cameras on top of the car create additional data that I hoped would help keep the car centered. The steering correction factor was initially set to 0.1 degrees, but I noticed vasty improved results when setting it a bit higher to 0.5 degrees.
+
+Left Camera
 ![alt text][image4]
+
+Things were now going generally okay but to help the vehicle recover better, I drove the whole track again but in the shape of a sin curve between each of the edges of the road. I only recorded data during the times when I was driving towards the center of the road, never towards the edges.
+
+Near Road Edge
 ![alt text][image5]
 
-Then I repeated this process on track two in order to get more data points.
+At this point when testing the model, the entire track could be driven consistently aside from a few key area that were occationally causing trouble.
 
-To augment the data sat, I also flipped images and angles thinking that this would ... For example, here is an image that has then been flipped:
+When the car was about to drive onto the brige or past the dirt on the far side of the bridge, it would sometimes get confused and fail to steer correctly. I fixed this by recording some extra data of how to recover in these key areas. Once this data was added to the training set, the car drove by both areas without a problem.
 
+Driving Near Dirt
 ![alt text][image6]
+
+Once all the data was gathered I had just under 7000 images of 320x160x3 size. To improve performance and reduce training time, I converted the images to grayscale and cut 70 pixels from the vertical dimension. This left the images with a size of 320x90x1. This new images use about 5 times less memory than the originals.
+
+Original Image
 ![alt text][image7]
 
-Etc ....
+Processed Image
+![alt text][image8]
 
-After the collection process, I had X number of data points. I then preprocessed this data by ...
+When all said and done, the entire model was able to train in about 1 minute on an NVIDIA GeForce 980TI graphics card.
 
+#### 5. Extra Thoughts
 
-I finally randomly shuffled the data set and put Y% of the data into a validation set. 
+The quality of the training data seemed to make an enourmous differnce on how well the model trained. It was really a case of garbage in garbage out. I had to scrap my data several times and start from scratch.
 
-I used this training data for training the model. The validation set helped determine if the model was over or under fitting. The ideal number of epochs was Z as evidenced by ... I used an adam optimizer so that manually training the learning rate wasn't necessary.
+Using the mouse to provide smoothing analog input for the steering as opposed to the keyboard made a big difference.
+
+Special thanks to Paul Heraty for his quick [guide](https://slack-files.com/T2HQV035L-F50B85JSX-7d8737aeeb) on tips and tricks for how to get started with this project.

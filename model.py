@@ -1,3 +1,7 @@
+# Title: 	model.py
+# Author: 	Joseph Rogers
+# Self Driving Car Project 3
+
 import os
 import csv
 import cv2
@@ -85,7 +89,7 @@ from keras.layers.pooling import MaxPooling2D
 
 import matplotlib.pyplot as plt # For plotting loss
 
-# NN Model Using the NVIDIA Architecture
+# NN Model Using a slightly modified verions of the NVIDIA Architecture
 model = Sequential()
 model.add(Lambda(lambda x: (x / 255.0) - 0.5, input_shape=(160,320,3)))
 model.add(Cropping2D(cropping=((50,20), (0,0))))
